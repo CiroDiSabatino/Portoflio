@@ -52,9 +52,9 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
 .hero-gallery {height:510px; position:relative; display:flex; align-items:center; min-height:0; padding:0; gap:0; grid-template-columns:none; background:none; border:0; border-radius:0; box-shadow:none; overflow:visible}
 .hero-art {position:absolute; min-height:0; overflow:hidden; box-shadow:0 24px 70px #0007; border:1px solid #fff2; border-radius:0}
 .hero-art img {width:100%; height:100%; object-fit:cover}
-.hero-art-dark {width:68%; height:82%; left:0; top:7%; z-index:2; background:#343438; transform:rotate(-4deg)}
+.hero-art-dark {width:64%; height:82%; left:0; top:7%; z-index:2; background:#343438; transform:rotate(-4deg)}
 .hero-art-dark img {object-position:center}
-.hero-art-light {width:62%; height:75%; right:0; bottom:2%; background:#ccae79; transform:rotate(5deg)}
+.hero-art-light {width:68%; height:75%; right:-3%; bottom:2%; z-index:1; background:#ccae79; transform:rotate(8deg)}
 .hero-art-light img {object-position:50% 50%}
 .hero-art-label {position:absolute; bottom:0; left:0; right:0; display:block; padding:55px 16px 17px; background:linear-gradient(transparent,#090909c9); border:0; border-radius:0; font-size:15px; font-weight:900; letter-spacing:.5px; transform:translateZ(0)}
 .hero-art-label small {display:block; color:#eee; font:700 9px ui-monospace,monospace; letter-spacing:1.5px; margin-top:4px}
@@ -130,7 +130,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   .hero-intro {max-width:640px}
   .hero-gallery {height:380px; width:100%; max-width:630px; margin:auto}
   .hero-art-dark {width:58%; height:93%; top:2%}
-  .hero-art-light {width:60%; height:80%; bottom:0}
+  .hero-art-light {width:66%; height:80%; bottom:0; right:-2%}
   .hero-corner-stamp {right:46%}
   .about-grid {gap:35px}
   .about-lead {font-size:18px}
@@ -150,7 +150,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   .hero-footnote {margin-top:28px}
   .hero-gallery {height:315px}
   .hero-art-dark {width:63%; height:90%; top:5%}
-  .hero-art-light {width:59%; height:77%; bottom:0}
+  .hero-art-light {width:65%; height:77%; bottom:0; right:-2%; transform:rotate(8deg)}
   .hero-art-label {font-size:11px; padding:38px 10px 11px}
   .hero-art-label small {font-size:7px}
   .hero-corner-stamp {height:60px; width:60px; right:42%; top:0; font-size:13px}
