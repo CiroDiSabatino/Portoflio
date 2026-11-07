@@ -1,5 +1,5 @@
 /*
- * Ciro Di Sabatino — portfolio refinement, 2026-11-06.
+ * Ciro Di Sabatino — portfolio refinement, 2026-11-07.
  * Replaces only Portfolio_Ciro_Mobile_Updated/script.js.
  * Keeps all existing galleries, covers, PDFs and project sections.
  * Restores the original editorial palette/typography and the two featured artworks.
@@ -197,6 +197,32 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   .button {transition:none}
   .gallery-track {transition:none !important}
 }
+/* Consistent toolbar height prevents vertical jumping when captions change. */
+.lightbox-toolbar {height:84px; min-height:84px; max-height:84px; align-items:center; overflow:hidden}
+.lightbox-toolbar > div:first-child {min-width:0; flex:1 1 auto; overflow:hidden}
+.lightbox-project {overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lightbox-caption-row {flex-wrap:nowrap;white-space:nowrap;min-height:20px;max-height:20px;overflow:hidden}
+#lightbox-caption {min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lightbox-counter {white-space:nowrap;flex:0 0 auto}
+/* Compact X, touch pinch-zoom and pan on the image surface. */
+.lightbox-close {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; min-height:0; min-width:36px; padding:0;
+  font-size:21px; line-height:1; font-weight:450;
+  border-radius:7px; border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.045); cursor:pointer; flex-shrink:0;
+}
+.lightbox-close:hover {background:rgba(255,255,255,.12)}
+.gallery-viewport {touch-action:none; overscroll-behavior:contain}
+.gallery-viewport .gallery-slide {touch-action:none}
+.gallery-slide img {transform-origin:center center; will-change:transform}
+.gallery-viewport.is-zoomed {cursor:grab}
+.gallery-viewport.is-zoomed.dragging {cursor:grabbing}
+@media(max-width:720px) {
+  .lightbox-toolbar {height:78px;min-height:78px;max-height:78px}
+  .lightbox-close {width:34px; height:34px; min-width:34px; font-size:20px}
+}
+
 `;
   const restoredStyleEl = document.createElement('style');
   restoredStyleEl.id = 'original-portfolio-style-refinement';
@@ -242,6 +268,19 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   // Proposed replacement: portfolio-focused rather than emphasizing academic background.
   const aboutHeading = document.getElementById('about-heading');
   if (aboutHeading) aboutHeading.innerHTML = 'ART WITH PURPOSE.<br><em>DESIGN FOR PLAY.</em>';
+
+  // Covers selected by the artist, and intentional editorial project order.
+  const neUICover = document.querySelector('.project[data-gallery="ne-ui"] .project-cover img');
+  if (neUICover) { neUICover.src = 'assets/cover_ne_ui.webp'; neUICover.alt = 'Negative Edge UI — original gameplay HUD showcase'; }
+  const imtCover = document.querySelector('.project[data-gallery="imt"] .project-cover img');
+  if (imtCover) { imtCover.src = 'assets/cover_its_my_turn.webp'; imtCover.alt = "It's My Turn — centered project cover"; }
+  const grid = document.getElementById('project-grid');
+  if (grid) {
+    ['ne-character','ne-ui','order','bigbro','wave','imt'].forEach(key => {
+      const card = grid.querySelector(`.project[data-gallery="${key}"]`);
+      if (card) grid.appendChild(card);
+    });
+  }
 
   const galleries = {
     order: { title: 'The Order', images: [
@@ -312,6 +351,12 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   const nextBtn = document.getElementById('lightbox-next');
   const closeBtn = document.getElementById('lightbox-close');
   if (!lightbox || !stage || !oldImage || !caption || !counter || !title || !dots || !prevBtn || !nextBtn || !closeBtn) return;
+  closeBtn.textContent = '×';
+  closeBtn.setAttribute('aria-label', 'Close gallery');
+  closeBtn.title = 'Close gallery';
+  const swipeNote = document.querySelector('.swipe-note');
+  if (swipeNote) swipeNote.textContent = 'Swipe to browse · Pinch with two fingers to zoom · Double-tap to zoom/reset';
+
 
   const viewport = document.createElement('div');
   viewport.className = 'gallery-viewport';
@@ -348,6 +393,38 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   let startX = 0;
   let startY = 0;
   let dragX = 0;
+  const activePointers = new Map();
+  const MAX_ZOOM = 4;
+  let zoomScale = 1, zoomX = 0, zoomY = 0;
+  let gesture = null;
+  let lastTouchTap = 0;
+  const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
+  function applyZoom(animate=false) {
+    const img = slideImages[1];
+    const maxX = viewport.clientWidth * (zoomScale - 1)/2;
+    const maxY = viewport.clientHeight * (zoomScale - 1)/2;
+    zoomX = clamp(zoomX,-maxX,maxX);
+    zoomY = clamp(zoomY,-maxY,maxY);
+    img.style.transition = animate ? 'transform .2s ease-out' : 'none';
+    img.style.transform = `translate3d(${zoomX}px,${zoomY}px,0) scale(${zoomScale})`;
+    viewport.classList.toggle('is-zoomed',zoomScale > 1.01);
+  }
+  function resetZoom() {
+    zoomScale=1; zoomX=0; zoomY=0;
+    slideImages.forEach(img=>{img.style.transition='none';img.style.transform='none';});
+    viewport.classList.remove('is-zoomed');
+    activePointers.clear(); gesture=null;
+  }
+  function pointerMidpoint(a,b) { return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}; }
+  function pointerDistance(a,b) {return Math.hypot(a.x-b.x,a.y-b.y);}
+  function initPinch() {
+    const [a,b]=[...activePointers.values()].slice(0,2);
+    const midpoint=pointerMidpoint(a,b);
+    gesture={kind:'pinch',startDist:Math.max(10,pointerDistance(a,b)), startScale:zoomScale,
+      startZoomX:zoomX,startZoomY:zoomY,startMid:midpoint};
+    dragX=0; snapCenter();
+  }
+
 
   function wrap(index, length) { return ((index % length) + length) % length; }
   function gallery() { return galleries[currentGallery]; }
@@ -374,7 +451,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     if (!g) return;
     [-1, 0, 1].forEach((offset, slot) => {
       const item = g.images[wrap(currentIndex + offset, g.images.length)];
-      slideImages[slot].src = item[0];
+      slideImages[slot].src = `${item[0]}?v=20261107hq`;
       slideImages[slot].alt = `${g.title} — ${item[1]}`;
     });
     const item = g.images[currentIndex];
@@ -382,6 +459,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     caption.textContent = item[1];
     counter.textContent = `${currentIndex + 1} / ${g.images.length}`;
     renderDots();
+    resetZoom();
     snapCenter();
   }
   function finishMovement() {
@@ -410,6 +488,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   function move(direction) {
     const g = gallery();
     if (!g || g.images.length < 2 || moving) return;
+    resetZoom();
     transitionTo(direction > 0 ? nextPosition : prevPosition,
       wrap(currentIndex + (direction > 0 ? 1 : -1), g.images.length));
   }
@@ -433,6 +512,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   }
   function closeGallery() {
     if (lightbox.open) lightbox.close();
+    resetZoom();
     document.body.style.overflow = '';
     pointerId = null;
     viewport.classList.remove('dragging');
@@ -457,38 +537,92 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     if (event.key === 'Escape') { event.preventDefault(); closeGallery(); }
   });
 
+  // Pointer gestures: one finger slides, two fingers zoom; a zoomed image pans
+  // instead of switching pages. The three-panel track remains horizontally aligned.
   viewport.addEventListener('pointerdown', event => {
     if (!lightbox.open || moving || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    pointerId = event.pointerId;
-    startX = event.clientX;
-    startY = event.clientY;
-    dragX = 0;
-    try { viewport.setPointerCapture?.(event.pointerId); } catch (_) { /* Synthetic or cancelled pointers do not require capture. */ }
-    viewport.classList.add('dragging');
-    track.style.transition = 'none';
+    activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    try { viewport.setPointerCapture(event.pointerId); } catch (_) {}
+    if (activePointers.size >= 2) {
+      initPinch(); viewport.classList.add('dragging'); return;
+    }
+    if (activePointers.size === 1) {
+      gesture={kind:zoomScale>1.01?'pan':'swipe', startX:event.clientX,startY:event.clientY,
+        initialZoomX:zoomX,initialZoomY:zoomY};
+      pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragX=0;
+      viewport.classList.add('dragging');
+      track.style.transition='none';
+    }
   });
   viewport.addEventListener('pointermove', event => {
-    if (event.pointerId !== pointerId || moving) return;
-    const x = event.clientX - startX;
-    const y = event.clientY - startY;
-    if (Math.abs(y) > Math.abs(x) * 1.5 && Math.abs(y) > 10) return;
-    dragX = Math.max(-viewport.clientWidth * .88, Math.min(viewport.clientWidth * .88, x));
-    track.style.transform = `translate3d(calc(${centerPosition} + ${dragX}px),0,0)`;
-  });
-  function releasePointer(event, cancelled = false) {
-    if (event.pointerId !== pointerId) return;
-    const dx = cancelled ? 0 : event.clientX - startX;
-    const dy = cancelled ? 0 : event.clientY - startY;
-    const threshold = Math.max(42, Math.min(90, viewport.clientWidth * .14));
-    pointerId = null;
-    viewport.classList.remove('dragging');
-    if (!cancelled && Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.15) {
-      move(dx < 0 ? 1 : -1);
-    } else if (dragX !== 0) {
-      transitionTo(centerPosition, currentIndex);
+    if (!activePointers.has(event.pointerId) || !gesture || moving) return;
+    activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    if (gesture.kind==='pinch' && activePointers.size>=2) {
+      const [a,b]=[...activePointers.values()].slice(0,2);
+      const mid=pointerMidpoint(a,b);
+      const nextScale=clamp(gesture.startScale * pointerDistance(a,b)/gesture.startDist,1,MAX_ZOOM);
+      const ratio=nextScale/gesture.startScale;
+      const rect=viewport.getBoundingClientRect();
+      const anchorX=gesture.startMid.x-(rect.left+rect.width/2);
+      const anchorY=gesture.startMid.y-(rect.top+rect.height/2);
+      zoomScale=nextScale;
+      zoomX=gesture.startZoomX*ratio + anchorX*(1-ratio) + mid.x-gesture.startMid.x;
+      zoomY=gesture.startZoomY*ratio + anchorY*(1-ratio) + mid.y-gesture.startMid.y;
+      applyZoom(); return;
     }
-    dragX = 0;
+    if (gesture.kind==='pan' && activePointers.size===1) {
+      zoomX=gesture.initialZoomX+event.clientX-gesture.startX;
+      zoomY=gesture.initialZoomY+event.clientY-gesture.startY;
+      applyZoom(); return;
+    }
+    if (gesture.kind==='swipe' && activePointers.size===1 && zoomScale<=1.01) {
+      const x=event.clientX-gesture.startX, y=event.clientY-gesture.startY;
+      if (Math.abs(y)>Math.abs(x)*1.5 && Math.abs(y)>10) return;
+      dragX=clamp(x,-viewport.clientWidth*.88,viewport.clientWidth*.88);
+      track.style.transform=`translate3d(calc(${centerPosition} + ${dragX}px),0,0)`;
+    }
+  });
+  function endGesture(event,cancelled=false) {
+    if (!activePointers.has(event.pointerId)) return;
+    const prior=gesture;
+    activePointers.delete(event.pointerId);
+    if (activePointers.size>=2) { initPinch();return; }
+    if (activePointers.size===1) {
+      const remaining=[...activePointers.entries()][0];
+      gesture={kind:zoomScale>1.01?'pan':'swipe',startX:remaining[1].x,startY:remaining[1].y,
+        initialZoomX:zoomX,initialZoomY:zoomY};
+      dragX=0; snapCenter(); return;
+    }
+    gesture=null;pointerId=null;viewport.classList.remove('dragging');
+    if (zoomScale>1 && zoomScale<1.015) {resetZoom();}
+    if (prior?.kind==='swipe' && !cancelled && zoomScale<=1.01) {
+      const dx=event.clientX-prior.startX,dy=event.clientY-prior.startY;
+      const threshold=Math.max(42,Math.min(90,viewport.clientWidth*.14));
+      if (Math.abs(dx)>=threshold && Math.abs(dx)>Math.abs(dy)*1.15) {
+        move(dx<0?1:-1);
+      } else if (dragX!==0) transitionTo(centerPosition,currentIndex);
+      dragX=0;
+    } else if (prior?.kind==='swipe') {
+      snapCenter();dragX=0;
+    }
+    if (event.pointerType==='touch' && !cancelled && prior?.kind!=='pinch') {
+      const now=performance.now();
+      const dist=Math.hypot(event.clientX-prior?.startX,event.clientY-prior?.startY);
+      if (dist<12 && now-lastTouchTap<330) {
+        // Double-tap to zoom or reset. In zoom mode the next one-finger drag pans.
+        if (zoomScale>1.01) resetZoom();
+        else {zoomScale=2; zoomX=0;zoomY=0;applyZoom(true);}
+        lastTouchTap=0;
+      } else if (dist<12) lastTouchTap=now;
+    }
   }
-  viewport.addEventListener('pointerup', event => releasePointer(event));
-  viewport.addEventListener('pointercancel', event => releasePointer(event, true));
+  viewport.addEventListener('pointerup',event=>endGesture(event));
+  viewport.addEventListener('pointercancel',event=>endGesture(event,true));
+  viewport.addEventListener('dblclick', event => {
+    event.preventDefault();
+    if (zoomScale>1.01) resetZoom();
+    else {zoomScale=2;zoomX=0;zoomY=0;applyZoom(true);}
+  });
+  window.addEventListener('resize',()=>{if (lightbox.open && zoomScale>1.01) applyZoom();});
+
 })();
