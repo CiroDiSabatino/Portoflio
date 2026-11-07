@@ -223,6 +223,24 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   .lightbox-close {width:34px; height:34px; min-width:34px; font-size:20px}
 }
 
+
+/* Immersive gallery on touch devices: tap to hide/show UI bars. */
+@media (max-width:720px) {
+ .lightbox .lightbox-toolbar, .lightbox .lightbox-footer { transition: opacity .18s ease; }
+ .lightbox.chrome-hidden .lightbox-toolbar {
+   flex:0 0 0 !important; height:0 !important; min-height:0 !important; max-height:0 !important;
+   overflow:hidden !important; opacity:0; padding:0 !important; margin:0 !important;
+   border:0 !important; pointer-events:none;
+ }
+ .lightbox.chrome-hidden .lightbox-footer {
+   flex:0 0 0 !important; height:0 !important; min-height:0 !important; max-height:0 !important;
+   overflow:hidden !important; opacity:0; padding:0 !important; margin:0 !important;
+   border:0 !important; pointer-events:none;
+ }
+ .lightbox.chrome-hidden .lightbox-stage {padding:0 !important}
+ .lightbox.chrome-hidden .gallery-viewport {width:100%;height:100%}
+}
+
 `;
   const restoredStyleEl = document.createElement('style');
   restoredStyleEl.id = 'original-portfolio-style-refinement';
@@ -271,9 +289,9 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
 
   // Covers selected by the artist, and intentional editorial project order.
   const neUICover = document.querySelector('.project[data-gallery="ne-ui"] .project-cover img');
-  if (neUICover) { neUICover.src = 'assets/cover_ne_ui.webp'; neUICover.alt = 'Negative Edge UI — original gameplay HUD showcase'; }
+  if (neUICover) { neUICover.onerror = () => { neUICover.onerror = null; neUICover.src = 'assets/cover_negative_edge.png'; }; neUICover.src = 'assets/cover_ne_ui_v2.jpg'; neUICover.alt = 'Negative Edge UI — original gameplay HUD showcase'; }
   const imtCover = document.querySelector('.project[data-gallery="imt"] .project-cover img');
-  if (imtCover) { imtCover.src = 'assets/cover_its_my_turn.webp'; imtCover.alt = "It's My Turn — centered project cover"; }
+  if (imtCover) { imtCover.onerror = () => { imtCover.onerror = null; imtCover.src = 'assets/cover_its_my_turn.png'; }; imtCover.src = 'assets/cover_its_my_turn_v2.jpg'; imtCover.alt = "It's My Turn — centered project cover"; }
   const grid = document.getElementById('project-grid');
   if (grid) {
     ['ne-character','ne-ui','order','bigbro','wave','imt'].forEach(key => {
@@ -284,45 +302,45 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
 
   const galleries = {
     order: { title: 'The Order', images: [
-      ['assets/project_order_01.jpg','Character lineup and role overview'],
-      ['assets/project_order_02.jpg','Faith Bearer concept page'],
-      ['assets/project_order_03.jpg','Stars Reader concept page'],
-      ['assets/project_order_04.jpg','The Sergeant concept page']
+      ['assets/project_order_01_hd.jpg','Character lineup and role overview'],
+      ['assets/project_order_02_hd.jpg','Faith Bearer concept page'],
+      ['assets/project_order_03_hd.jpg','Stars Reader concept page'],
+      ['assets/project_order_04_hd.jpg','The Sergeant concept page']
     ] },
     'ne-character': { title: 'Negative Edge — Character Design', images: [
-      ['assets/project_ne_char_01.jpg','Alioth final concept'],
-      ['assets/project_ne_char_02.jpg','Silhouette exploration'],
-      ['assets/project_ne_char_03.jpg','Movement study'],
-      ['assets/project_ne_char_04.jpg','Helmet development'],
-      ['assets/project_ne_char_05.jpg','Weapon and backpack variations'],
-      ['assets/project_ne_char_06.jpg','Turnaround and armor views'],
-      ['assets/project_ne_char_07.jpg','Head, arm and backpack details']
+      ['assets/project_ne_char_01_hd.jpg','Alioth final concept'],
+      ['assets/project_ne_char_02_hd.jpg','Silhouette exploration'],
+      ['assets/project_ne_char_03_hd.jpg','Movement study'],
+      ['assets/project_ne_char_04_hd.jpg','Helmet development'],
+      ['assets/project_ne_char_05_hd.jpg','Weapon and backpack variations'],
+      ['assets/project_ne_char_06_hd.jpg','Turnaround and armor views'],
+      ['assets/project_ne_char_07_hd.jpg','Head, arm and backpack details']
     ] },
     'ne-ui': { title: 'Negative Edge — Game UI', images: [
-      ['assets/project_ne_ui_01.jpg','Project overview and goals'],
-      ['assets/project_ne_ui_02.jpg','Challenge and solution pages'],
-      ['assets/project_ne_ui_03.jpg','More challenge / solution breakdown'],
-      ['assets/project_ne_ui_04.jpg','HUD components and visual assets'],
-      ['assets/project_ne_ui_05.jpg','Weapon animation sheet'],
-      ['assets/project_ne_ui_06.jpg','Inventory study']
+      ['assets/project_ne_ui_01_hd.jpg','Project overview and goals'],
+      ['assets/project_ne_ui_02_hd.jpg','Challenge and solution pages'],
+      ['assets/project_ne_ui_03_hd.jpg','More challenge / solution breakdown'],
+      ['assets/project_ne_ui_04_hd.jpg','HUD components and visual assets'],
+      ['assets/project_ne_ui_05_hd.jpg','Weapon animation sheet'],
+      ['assets/project_ne_ui_06_hd.jpg','Inventory study']
     ] },
     bigbro: { title: 'Big Bro App', images: [
-      ['assets/project_bigbro_01.jpg','Project overview and goals'],
-      ['assets/project_bigbro_02.jpg','Challenge, solution and palette'],
-      ['assets/project_bigbro_03.jpg','Character customization and visual assets'],
-      ['assets/project_bigbro_04.jpg','Mobile screens and flow'],
-      ['assets/project_bigbro_05.jpg','UI components, badges and icons']
+      ['assets/project_bigbro_01_hd.jpg','Project overview and goals'],
+      ['assets/project_bigbro_02_hd.jpg','Challenge, solution and palette'],
+      ['assets/project_bigbro_03_hd.jpg','Character customization and visual assets'],
+      ['assets/project_bigbro_04_hd.jpg','Mobile screens and flow'],
+      ['assets/project_bigbro_05_hd.jpg','UI components, badges and icons']
     ] },
     wave: { title: 'Wave', images: [
-      ['assets/project_wave_01.jpg','Project overview and goals'],
-      ['assets/project_wave_02.jpg','Challenge and solution'],
-      ['assets/project_wave_03.jpg','Visual assets']
+      ['assets/project_wave_01_hd.jpg','Project overview and goals'],
+      ['assets/project_wave_02_hd.jpg','Challenge and solution'],
+      ['assets/project_wave_03_hd.jpg','Visual assets']
     ] },
     imt: { title: "It's My Turn", images: [
-      ['assets/project_imt_01.jpg','Project overview and goals'],
-      ['assets/project_imt_02.jpg','Challenge and solution'],
-      ['assets/project_imt_03.jpg','Icons and visual assets'],
-      ['assets/project_imt_04.jpg','Lettering and additional assets']
+      ['assets/project_imt_01_hd.jpg','Project overview and goals'],
+      ['assets/project_imt_02_hd.jpg','Challenge and solution'],
+      ['assets/project_imt_03_hd.jpg','Icons and visual assets'],
+      ['assets/project_imt_04_hd.jpg','Lettering and additional assets']
     ] }
   };
 
@@ -355,7 +373,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   closeBtn.setAttribute('aria-label', 'Close gallery');
   closeBtn.title = 'Close gallery';
   const swipeNote = document.querySelector('.swipe-note');
-  if (swipeNote) swipeNote.textContent = 'Swipe to browse · Pinch with two fingers to zoom · Double-tap to zoom/reset';
+  if (swipeNote) swipeNote.textContent = 'Swipe to browse · Pinch to zoom · Tap to hide/show controls';
 
 
   const viewport = document.createElement('div');
@@ -398,6 +416,17 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   let zoomScale = 1, zoomX = 0, zoomY = 0;
   let gesture = null;
   let lastTouchTap = 0;
+  let chromeTapTimer = null;
+  let ignoreTapUntil = 0;
+  function clearChromeTap() {
+    if (chromeTapTimer !== null) {clearTimeout(chromeTapTimer); chromeTapTimer=null;}
+  }
+  function toggleChrome() {
+    if (!lightbox.open || !window.matchMedia('(max-width: 720px)').matches) return;
+    lightbox.classList.toggle('chrome-hidden');
+    if (zoomScale > 1.01) applyZoom();
+  }
+
   const clamp = (v,min,max) => Math.max(min,Math.min(max,v));
   function applyZoom(animate=false) {
     const img = slideImages[1];
@@ -451,7 +480,13 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     if (!g) return;
     [-1, 0, 1].forEach((offset, slot) => {
       const item = g.images[wrap(currentIndex + offset, g.images.length)];
-      slideImages[slot].src = `${item[0]}?v=20261107hq`;
+      slideImages[slot].dataset.fallbackUsed = '0';
+      slideImages[slot].onerror = function () {
+        if (this.dataset.fallbackUsed === '1') return;
+        this.dataset.fallbackUsed = '1';
+        this.src = item[0].replace(/_hd\.jpg$/, '.jpg') + '?v=legacy';
+      };
+      slideImages[slot].src = item[0];
       slideImages[slot].alt = `${g.title} — ${item[1]}`;
     });
     const item = g.images[currentIndex];
@@ -502,6 +537,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
   }
   function openGallery(key) {
     if (!galleries[key]) return;
+    lightbox.classList.remove('chrome-hidden');
     currentGallery = key;
     currentIndex = 0;
     moving = false;
@@ -511,6 +547,8 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     document.body.style.overflow = 'hidden';
   }
   function closeGallery() {
+    lightbox.classList.remove('chrome-hidden');
+    clearChromeTap();
     if (lightbox.open) lightbox.close();
     resetZoom();
     document.body.style.overflow = '';
@@ -544,6 +582,7 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     activePointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
     try { viewport.setPointerCapture(event.pointerId); } catch (_) {}
     if (activePointers.size >= 2) {
+      clearChromeTap(); ignoreTapUntil = performance.now()+450;
       initPinch(); viewport.classList.add('dragging'); return;
     }
     if (activePointers.size === 1) {
@@ -608,12 +647,22 @@ body {background:#101219; color:var(--text); font-family:Inter,'Segoe UI',Roboto
     if (event.pointerType==='touch' && !cancelled && prior?.kind!=='pinch') {
       const now=performance.now();
       const dist=Math.hypot(event.clientX-prior?.startX,event.clientY-prior?.startY);
-      if (dist<12 && now-lastTouchTap<330) {
-        // Double-tap to zoom or reset. In zoom mode the next one-finger drag pans.
-        if (zoomScale>1.01) resetZoom();
-        else {zoomScale=2; zoomX=0;zoomY=0;applyZoom(true);}
-        lastTouchTap=0;
-      } else if (dist<12) lastTouchTap=now;
+      if (dist<12 && now>ignoreTapUntil && !moving) {
+        if (now-lastTouchTap<330) {
+          // Double-tap retains the existing zoom gesture; do not toggle bars.
+          clearChromeTap();
+          if (zoomScale>1.01) resetZoom();
+          else {zoomScale=2; zoomX=0;zoomY=0;applyZoom(true);}
+          lastTouchTap=0;
+        } else {
+          lastTouchTap=now;
+          clearChromeTap();
+          chromeTapTimer = setTimeout(() => {
+            chromeTapTimer = null;
+            if (activePointers.size===0 && lightbox.open) toggleChrome();
+          }, 260);
+        }
+      }
     }
   }
   viewport.addEventListener('pointerup',event=>endGesture(event));
